@@ -12,7 +12,22 @@ namespace upc {
 
     for (unsigned int l = 0; l < r.size(); ++l) {
   		/// \TODO Compute the autocorrelation r[l]
+      
+      r[l]= 0.0f;
+      for (unsigned int n= 0; n < r.size() -l; ++n){
+        r[l]+= x[n] * x[n+l];
+      }
+
     }
+    /**
+      \DONE Autocorrelación calculada
+      \f[
+      r[l] = \sum_{n=0}^{N-l} x[n] x[n+l]
+      \f]
+      - Inicializamos la atuocorrelación a 0.
+      - Sumamos la multipliacación de las dos (la señal natural con la desplazada)
+      */
+    
 
     if (r[0] == 0.0F) //to avoid log() and divide zero 
       r[0] = 1e-10; 
