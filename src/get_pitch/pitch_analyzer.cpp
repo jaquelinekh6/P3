@@ -85,6 +85,7 @@ namespace upc {
     for (unsigned int i=0; i<x.size(); ++i)
       x[i] *= window[i];
 
+
     vector<float> r(npitch_max);
 
     //Compute correlation
@@ -104,6 +105,7 @@ namespace upc {
 
     unsigned int lag = iRMax - r.begin(); //esta puesto al principio de la autocorrelacion
     //hay que localizar el valor maximo entre npitch_min y npitch_max
+
 
     float pot = 10 * log10(r[0]);
 

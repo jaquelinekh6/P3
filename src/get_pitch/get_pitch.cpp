@@ -62,12 +62,32 @@ int main(int argc, const char *argv[]) {
   int n_shift = rate * FRAME_SHIFT;
 
   // Define analyzer
-  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500, umaxnorm);
+  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::HAMMING, 50, 500, umaxnorm);
 
   /// \TODO
   /// Preprocess the input signal in order to ease pitch estimation. For instance,
   /// central-clipping or low pass filtering may be used.
   
+
+  float max_val = 0.0F;
+  for (unsigned int i = 0; i < x.size(); ++i) {
+    if (fabs(x[i]) > max_val)
+      max_val = fabs(x[i]);
+  }
+
+  float Cl = 0.02F * max_val;
+
+  for (unsigned int i = 0; i < x.size(); ++i) {
+    if (x[i] >= Cl) {
+      x[i] = x[i] - Cl;
+    } else if (x[i] <= -Cl) {
+      x[i] = x[i] + Cl;
+    } else {
+      x[i] = 0.0F;
+    }
+  }
+
+
   // Iterate for each frame and save values in f0 vector
   vector<float>::iterator iX;
   vector<float> f0;
@@ -79,6 +99,31 @@ int main(int argc, const char *argv[]) {
   /// \TODO
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
   /// or time-warping may be used.
+
+  // --- INICIO FILTRO DE MEDIANA (L=3) ---
+  // Solo aplicamos si tenemos suficientes muestras
+  if (f0.size() > 2) {
+      vector<float> f0_med = f0; // Copia para guardar resultados sin afectar la lectura
+      
+      // Iteramos desde el segundo elemento hasta el penúltimo
+      for (unsigned int i = 1; i < f0.size() - 1; ++i) {
+          // Extraemos la ventana local de 3 muestras
+          float v1 = f0[i-1];
+          float v2 = f0[i];
+          float v3 = f0[i+1];
+
+          // Ordenamos los 3 valores para encontrar el del medio (mediana)
+          // Una forma sencilla sin arrays es comparar manualmente:
+          float median;
+          if ((v1 <= v2 && v2 <= v3) || (v3 <= v2 && v2 <= v1)) median = v2;
+          else if ((v2 <= v1 && v1 <= v3) || (v3 <= v1 && v1 <= v2)) median = v1;
+          else median = v3;
+
+          f0_med[i] = median;
+      }
+      f0 = f0_med; // Sobrescribimos el vector original con el filtrado
+  }
+  // --- FIN FILTRO DE MEDIANA ---
 
   // Write f0 contour into the output file
   ofstream os(output_txt);
