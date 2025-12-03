@@ -41,10 +41,7 @@ namespace upc {
 
     switch (win_type) {
     case HAMMING:
-      for (unsigned int i = 0; i < frameLen; ++i) {
-          // M_PI está definido en math.h
-          window[i] = 0.54f - 0.46f * cos((2.0f * M_PI * i) / (frameLen - 1));
-      }      
+      /// \TODO Implement the Hamming window
       break;
     case RECT:
     default:
