@@ -14,10 +14,9 @@ namespace upc {
   		/// \TODO Compute the autocorrelation r[l]
       
       r[l]= 0.0f;
-      for (unsigned int n= 0; n < r.size() -l; ++n){
-        r[l]+= x[n] * x[n+l];
+      for (unsigned int n = 0; n < x.size() - l; ++n) {
+        r[l] += x[n] * x[n+l];
       }
-
     }
     /**
       \DONE Autocorrelación calculada
@@ -42,6 +41,12 @@ namespace upc {
     switch (win_type) {
     case HAMMING:
       /// \TODO Implement the Hamming window
+      for (int i = 0; i < frameLen; ++i) {
+        window[i] = 0.54f - 0.46f * cos(2.0f * M_PI * i / (frameLen - 1));
+      }
+      /**
+      \DONE fórmula de la ventana de Hamming para suavizar los bordes de la trama y mejorar el análisis espectral
+      */
       break;
     case RECT:
     default:
