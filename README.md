@@ -54,6 +54,24 @@ void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) co
 
    * Implemente la regla de decisión sonoro o sordo e inserte el código correspondiente.
 
+
+>Para determinar si una trama de audio corresponde a un segmento sonoro o sordo, evaluamos la fuerza de la periodicidad de la señal.
+>
+>El método utiliza el valor del máximo secundario de la autocorrelación normalizada. Comparamos este valor con un umbral predefinido (`umaxnorm`) para tomar la decisión.
+>
+>La función devuelve `true` si la trama se considera **sorda** (sin pitch).
+>* Si `rmaxnorm > umaxnorm`: La correlación es alta, lo que indica periodicidad. Por tanto, es sonora (Voiced) y devolvemos `false`.
+>* Si `rmaxnorm <= umaxnorm`: La correlación es débil. Consideramos la trama sorda (Unvoiced) y devolvemos `true`.
+
+```cpp
+bool PitchAnalyzer::unvoiced(float pot, float r1norm, float rmaxnorm) const {
+    
+    if(rmaxnorm > this->umaxnorm){
+      return false; //La trama es SONORA (No es unvoiced)
+    }
+    return true;    //La trama es SORDA (Es unvoiced)
+}
+```
    * Puede serle útil seguir las instrucciones contenidas en el documento adjunto `código.pdf`.
 
 - Una vez completados los puntos anteriores, dispondrá de una primera versión del estimador de pitch. El 
