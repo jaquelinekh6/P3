@@ -17,11 +17,11 @@ Ejercicios básicos
 
    ### Código Implementado
 
-El método `PitchAnalyzer::autocorrelation` realiza los siguientes pasos:
-1.  **Iteración de Lags:** Recorremos los posibles valores de retardo `l` definidos por el rango de búsqueda de pitch.
-2.  **Producto Acumulado:** Para cada `l`, sumamos el producto de la señal original y la señal desplazada.
-3.  **Límite del Bucle:** El bucle interno itera hasta `x.size() - l` para asegurar que no accedemos a memoria fuera del vector y para simular correctamente el desplazamiento de la ventana.
-4.  **Seguridad:** Se protege contra divisiones por cero asegurando que $r[0]$ nunca sea exactamente 0.
+>El método `PitchAnalyzer::autocorrelation` realiza los siguientes pasos:
+> 1.  **Iteración de Lags:** Recorremos los posibles valores de retardo `l` definidos por el rango de búsqueda de pitch.
+> 2.  **Producto Acumulado:** Para cada `l`, sumamos el producto de la señal original y la señal desplazada.
+> 3.  **Límite del Bucle:** El bucle interno itera hasta `x.size() - l` para asegurar que no accedemos a memoria fuera del vector y para simular correctamente el desplazamiento de la ventana.
+> 4.  **Seguridad:** Se protege contra divisiones por cero asegurando que $r[0]$ nunca sea exactamente 0.
 
 ```cpp
 void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) const {
@@ -41,7 +41,7 @@ void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) co
     if (r[0] == 0.0F) 
         r[0] = 1e-10; 
 }
-
+```
    * Inserte una gŕafica donde, en un *subplot*, se vea con claridad la señal temporal de un segmento de
      unos 30 ms de un fonema sonoro y su periodo de pitch; y, en otro *subplot*, se vea con claridad la
 	 autocorrelación de la señal y la posición del primer máximo secundario.
