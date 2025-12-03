@@ -25,6 +25,7 @@ Usage:
     get_pitch --version
 
 Options:
+    -m, --umaxnorm FLOAT  Llindar de decisió sonor/sord per a rmaxnorm [defaul: 0.5]
     -h, --help  Show this screen
     --version   Show the version of the project
 
@@ -46,6 +47,8 @@ int main(int argc, const char *argv[]) {
 
 	std::string input_wav = args["<input-wav>"].asString();
 	std::string output_txt = args["<output-txt>"].asString();
+  float umaxnorm = stof(args["--umaxnorm"].asString());
+
 
   // Read input sound file
   unsigned int rate;
@@ -59,12 +62,31 @@ int main(int argc, const char *argv[]) {
   int n_shift = rate * FRAME_SHIFT;
 
   // Define analyzer
-  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500);
+  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500, umaxnorm);
 
-  /// \TODO
   /// Preprocess the input signal in order to ease pitch estimation. For instance,
   /// central-clipping or low pass filtering may be used.
-  
+  // Calculo el máximo absoluto global de la señal para definir un umbral relativo.
+  float max_val = 0.0f;
+  for (unsigned int i = 0; i < x.size(); ++i) {
+      if (fabs(x[i]) > max_val)
+          max_val = fabs(x[i]);
+  }
+
+  // 2. Defino el umbral de recorte (Clipping Level).
+  float clp_lev = 0.3f * max_val; 
+
+  // 3. Aplico Center Clipping (versión con offset) a toda la señal 'x'
+  for (unsigned int i = 0; i < x.size(); ++i) {
+      if (x[i] > clp_lev) {
+          x[i] = x[i] - clp_lev;
+      } else if (x[i] < -clp_lev) {
+          x[i] = x[i] + clp_lev;
+      } else {
+          x[i] = 0.0f;
+      }
+  }
+
   // Iterate for each frame and save values in f0 vector
   vector<float>::iterator iX;
   vector<float> f0;
