@@ -50,16 +50,63 @@ void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) co
 	 hacerlo. Se valorará la utilización de la biblioteca matplotlib de Python.
 
   > ### Visualización de Resultados
-  >Se ha generado una gráfica mediante un script de MATLAB (disponible en la carpeta `scripts/`) para visualizar un segmento de voz sonoro y su autocorrelación, marcando el periodo de pitch detectado.
-  
+  >Se ha generado una gráfica mediante un script de MATLAB (código ubicado en la carpeta `scripts/`) para visualizar un segmento de voz sonoro y su autocorrelación, marcando el periodo de pitch detectado.
+
   ![Gráfica de señal y autocorrelación generada con MATLAB](captura_subplot.png)
 
    * Determine el mejor candidato para el periodo de pitch localizando el primer máximo secundario de la
      autocorrelación. Inserte a continuación el código correspondiente.
 
+>  ### Código Implementado
+>     
+>El método `PitchAnalyzer::compute_pitch` realiza los siguientes pasos:
+> 1. **Enventanado (Windowing)** para minimizar la distorsión espectral en los extremos de la trama
+> 2. **Cálculo de la Autocorrelación** para identificar periodicidades
+> 3. **Estimación del Pitch** en [`npitch_min`, `npitch_max`]
+> 4. **Decisión Sordo/Sonoro**
+
+```cpp
+float PitchAnalyzer::compute_pitch(vector<float> & x) const {
+    // Verificación de seguridad: la trama debe tener el tamaño esperado
+    if (x.size() != frameLen)
+      return -1.0F;
+
+    // 1. Enventanado (Windowing)
+    for (unsigned int i = 0; i < x.size(); ++i)
+      x[i] *= window[i];
+
+    // 2. Cálculo de la Autocorrelación
+    // Hasta npitch_max
+    vector<float> r(npitch_max);
+    autocorrelation(x, r);
+
+    // 3. Estimación del Pitch 
+    // Buscamos el máximo secundario de la autocorrelación.
+    // Restringimos la búsqueda al rango [npitch_min, npitch_max]
+    vector<float>::const_iterator iR = r.begin();
+    vector<float>::const_iterator iRMax = std::max_element(iR + npitch_min, iR + npitch_max);
+
+    // Convertimos la posición del iterador a un valor entero de lag
+    unsigned int lag = iRMax - r.begin();
+
+    // 4. Decisión Sordo/Sonoro
+    // Preparamos las características: potencia en dB y correlación normalizada
+    float pot = 10 * log10(r[0]);
+    float r1norm = r[1] / r[0];      // Correlación a lag 1 
+    float rmaxnorm = r[lag] / r[0];  // Correlación en el candidato de pitch 
+
+    if (unvoiced(pot, r1norm, rmaxnorm)) {
+        return 0; // Trama considerada sorda (sin pitch)
+    } else {
+        // Trama sonora: convertimos el lag a frecuencia (f = 1/T)
+        return (float) samplingFreq / (float) lag;
+    }
+}
+```
    * Implemente la regla de decisión sonoro o sordo e inserte el código correspondiente.
 
-
+>  ### Código Implementado
+>
 >Para determinar si una trama de audio corresponde a un segmento sonoro o sordo, evaluamos la fuerza de la periodicidad de la señal.
 >
 >El método utiliza el valor del máximo secundario de la autocorrelación normalizada. Comparamos este valor con un umbral predefinido (`umaxnorm`) para tomar la decisión.
