@@ -152,6 +152,16 @@ bool PitchAnalyzer::unvoiced(float pot, float r1norm, float rmaxnorm) const {
     y el *score* TOTAL proporcionados por `pitch_evaluate` en la evaluación de la base de datos 
 	`pitch_db/train`..
 
+> Tras realizar pruebas para optimizar los parámetros del sistema, hemos determinado que un umbral de decisión sordo/sonoro (umaxnorm) de 0.36 proporciona el mejor balance de resultados.
+>Ejecutando `run_get_pitch 0.36` con las mejoras implementadas sale lo siguiente: 
+>
+>| Métrica de Error | Fracción de Tramas | Porcentaje |
+>| :--- | :---: | :---: |
+>| Unvoiced frames as voiced | 357 / 7045 | 5.07 % |
+>| Voiced frames as unvoiced | 368 / 4155 | 8.86 % |
+>| Gross voiced errors (+20%) | 46 / 3787 | 1.21 % |
+>| MSE of fine errors | - | 2.61 % |
+>| **SCORE TOTAL** | **-** | **90.39 %** |
   ![Captura de la evaluación final](captura_evaluacion.png)
 
 Ejercicios de ampliación
