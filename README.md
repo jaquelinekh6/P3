@@ -15,8 +15,8 @@ Ejercicios básicos
 
    * Complete el cálculo de la autocorrelación e inserte a continuación el código correspondiente.
 
-   ### Código Implementado
-
+>  ### Código Implementado
+>
 >El método `PitchAnalyzer::autocorrelation` realiza los siguientes pasos:
 > 1.  **Iteración de Lags:** Recorremos los posibles valores de retardo `l` definidos por el rango de búsqueda de pitch.
 > 2.  **Producto Acumulado:** Para cada `l`, sumamos el producto de la señal original y la señal desplazada.
@@ -48,6 +48,11 @@ void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) co
 
 	 NOTA: es más que probable que tenga que usar Python, Octave/MATLAB u otro programa semejante para
 	 hacerlo. Se valorará la utilización de la biblioteca matplotlib de Python.
+
+  > ### Visualización de Resultados
+  >Se ha generado una gráfica mediante un script de MATLAB (disponible en la carpeta `scripts/`) para visualizar un segmento de voz sonoro y su autocorrelación, marcando el periodo de pitch detectado.
+  
+  ![Gráfica de señal y autocorrelación generada con MATLAB](captura_subplot.png)
 
    * Determine el mejor candidato para el periodo de pitch localizando el primer máximo secundario de la
      autocorrelación. Inserte a continuación el código correspondiente.
