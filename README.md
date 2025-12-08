@@ -60,10 +60,10 @@ void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) co
 >  ### Código Implementado
 >     
 >El método `PitchAnalyzer::compute_pitch` realiza los siguientes pasos:
-> 1. **Enventanado (Windowing)** para minimizar la distorsión espectral en los extremos de la trama
-> 2. **Cálculo de la Autocorrelación** para identificar periodicidades
-> 3. **Estimación del Pitch** en [`npitch_min`, `npitch_max`]
-> 4. **Decisión Sordo/Sonoro**
+> 1. **Enventanado (Windowing)** para minimizar la distorsión espectral en los extremos de la trama.
+> 2. **Cálculo de la Autocorrelación** para identificar periodicidades.
+> 3. **Estimación del Pitch** en [`npitch_min`, `npitch_max`].
+> 4. **Decisión Sordo/Sonoro** si es trama sonora, convertimos el lag a frecuencia.
 
 ```cpp
 float PitchAnalyzer::compute_pitch(vector<float> & x) const {
@@ -90,13 +90,12 @@ float PitchAnalyzer::compute_pitch(vector<float> & x) const {
     unsigned int lag = iRMax - r.begin();
 
     // 4. Decisión Sordo/Sonoro
-    // Preparamos las características: potencia en dB y correlación normalizada
     float pot = 10 * log10(r[0]);
     float r1norm = r[1] / r[0];      // Correlación a lag 1 
     float rmaxnorm = r[lag] / r[0];  // Correlación en el candidato de pitch 
 
     if (unvoiced(pot, r1norm, rmaxnorm)) {
-        return 0; // Trama considerada sorda (sin pitch)
+        return 0; // Trama considerada sorda
     } else {
         // Trama sonora: convertimos el lag a frecuencia (f = 1/T)
         return (float) samplingFreq / (float) lag;
@@ -153,6 +152,8 @@ bool PitchAnalyzer::unvoiced(float pot, float r1norm, float rmaxnorm) const {
     y el *score* TOTAL proporcionados por `pitch_evaluate` en la evaluación de la base de datos 
 	`pitch_db/train`..
 
+  ![Captura de la evaluación final](captura_evaluacion.png)
+
 Ejercicios de ampliación
 ------------------------
 
@@ -189,7 +190,91 @@ Ejercicios de ampliación
   También se valorará la realización de un estudio de los parámetros involucrados. Por ejemplo, si se opta
   por implementar el filtro de mediana, se valorará el análisis de los resultados obtenidos en función de
   la longitud del filtro.
-   
+
+>Para la ampliación, hemos implementado una cadena de procesamiento de tres etapas: 
+> 1. **Center Clipping** (al 2%) como pre-procesado para limpiar la señal antes de la autocorrelación. 
+> 2. **Restricción de búsqueda a 50-500Hz** y uso de **ventana de Hamming** 
+> 3. **Filtro de Mediana (L=3)** como post-procesado para corregir errores groseros puntuales en la trayectoria del pitch.
+>
+> ### 1. Center Clipping
+>Elimina el ruido de fondo y los formantes débiles poniendo a cero las muestras con amplitud baja (menor al umbral `Cl`). De esta manera, reduce errores en la detección del periodo fundamental.
+
+```cpp
+float max_val = 0.0F;
+  for (unsigned int i = 0; i < x.size(); ++i) {
+    if (fabs(x[i]) > max_val)
+      max_val = fabs(x[i]);
+  }
+
+  float Cl = 0.02F * max_val; // Umbral al 2% del máximo
+
+  for (unsigned int i = 0; i < x.size(); ++i) {
+    if (x[i] >= Cl) {
+      x[i] = x[i] - Cl;
+    } else if (x[i] <= -Cl) {
+      x[i] = x[i] + Cl;
+    } else {
+      x[i] = 0.0F; // Elimina valores bajos
+    }
+  }
+```
+>
+> ### 2. Restricción de búsqueda a 50-500Hz y ventana de Hamming
+>Limitamos las frecuencias entre 50Hz y 500Hz. Esto evita que el algoritmo seleccione frecuencias que no corresponden a la voz humana, reduciendo falsos positivos
+
+```cpp
+const float MIN_F0 = 50.0F; 
+const float MAX_F0 = 500.0F;
+```
+>fórmula de la ventana de Hamming para suavizar los bordes de la trama y mejorar el análisis espectral
+
+```cpp
+void PitchAnalyzer::set_window(Window win_type) {
+    if (frameLen == 0)
+      return;
+
+    window.resize(frameLen);
+
+    switch (win_type) {
+    case HAMMING:
+      for (int i = 0; i < frameLen; ++i) {
+        window[i] = 0.54f - 0.46f * cos(2.0f * M_PI * i / (frameLen - 1));
+      }
+     
+      break;
+    case RECT:
+    default:
+      window.assign(frameLen, 1);
+    }
+  }
+```
+> ### 3. Filtro de Mediana (L=3)
+>Suaviza la trayectoria del pitch. Si hay un "salto" brusco o error grosero donde el pitch se duplica/divide por la mitad momentáneamente, la mediana lo ignora.
+
+```cpp
+// Solo aplicamos si tenemos suficientes muestras
+  if (f0.size() > 2) {
+      vector<float> f0_med = f0; // Copia para guardar resultados sin afectar la lectura
+      
+      // Iteramos desde el segundo elemento hasta el penúltimo
+      for (unsigned int i = 1; i < f0.size() - 1; ++i) {
+          // Extraemos la ventana local de 3 muestras
+          float v1 = f0[i-1];
+          float v2 = f0[i];
+          float v3 = f0[i+1];
+
+          // Ordenamos los 3 valores para encontrar el del medio (mediana)
+          // Una forma sencilla sin arrays es comparar manualmente:
+          float median;
+          if ((v1 <= v2 && v2 <= v3) || (v3 <= v2 && v2 <= v1)) median = v2;
+          else if ((v2 <= v1 && v1 <= v3) || (v3 <= v1 && v1 <= v2)) median = v1;
+          else median = v3;
+
+          f0_med[i] = median;
+      }
+      f0 = f0_med; // Sobrescribimos el vector original con el filtrado
+  }
+```
 
 Evaluación *ciega* del estimador
 -------------------------------
