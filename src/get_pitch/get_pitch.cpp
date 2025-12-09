@@ -20,15 +20,16 @@ using namespace upc;
 static const char USAGE[] = R"(
 get_pitch - Pitch Estimator 
 
-Usage:
+usage:
     get_pitch [options] <input-wav> <output-txt>
     get_pitch (-h | --help)
     get_pitch --version
 
 Options:
-    -m, --umaxnorm FLOAT  Llindar de decisió sonor/sord per a rmaxnorm [defaul: 0.5]
-    -h, --help  Show this screen
-    --version   Show the version of the project
+    -m FLOAT, --umaxnorm=FLOAT  Umbral de decisión sonor/sord (VAD) [default: 0.36]
+    -c FLOAT, --cclip=FLOAT     Umbral de Center-Clipping relativo [default: 0.02]
+    -h, --help                  Mostrar esta pantalla de ayuda
+    --version                   Mostrar la versión del proyecto
 
 Arguments:
     input-wav   Wave file with the audio signal
@@ -46,10 +47,13 @@ int main(int argc, const char *argv[]) {
         true,    // show help if requested
         "2.0");  // version string
 
-	std::string input_wav = args["<input-wav>"].asString();
-	std::string output_txt = args["<output-txt>"].asString();
-  float umaxnorm = stof(args["--umaxnorm"].asString());
-
+// Leer argumentos
+    std::string input_wav = args["<input-wav>"].asString();
+    std::string output_txt = args["<output-txt>"].asString();
+    
+    // Leer opciones (docopt se encarga de los valores por defecto definidos arriba)
+    float umaxnorm = stof(args["--umaxnorm"].asString());
+    float cclip_thr = stof(args["--cclip"].asString()); // Nueva opción para el clipping
 
   // Read input sound file
   unsigned int rate;
@@ -76,7 +80,7 @@ int main(int argc, const char *argv[]) {
       max_val = fabs(x[i]);
   }
 
-  float Cl = 0.02F * max_val;
+  float Cl = cclip_thr * max_val;
 
   for (unsigned int i = 0; i < x.size(); ++i) {
     if (x[i] >= Cl) {
@@ -137,6 +141,22 @@ int main(int argc, const char *argv[]) {
   for (iX = f0.begin(); iX != f0.end(); ++iX) 
     os << *iX << '\n';
   os << 0 << '\n';//pitch at t=Dur
+
+  // Cerramos el archivo para asegurar que se guarda en disco antes de listarlo
+    os.close();
+
+    std::cout << std::endl;
+    std::cout << "Ejecución completada." << std::endl;
+    
+    std::cout << std::endl;
+    std::cout << "Información del archivo generado:" << std::endl;
+
+    // Comando de sistema para mostrar el archivo creado (nombre y tamaño)
+    std::string cmd = "ls -sh " + output_txt;
+    
+    // Ejecutamos el comando 'ls'
+    int ret = system(cmd.c_str());
+    (void)ret; // Línea para evitar warnings del compilador sobre variable no usada
 
   return 0;
 }

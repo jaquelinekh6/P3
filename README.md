@@ -52,7 +52,7 @@ void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) co
   > ### Visualización de Resultados
   >Se ha generado una gráfica mediante un script de MATLAB (código ubicado en la carpeta `scripts/`) para visualizar un segmento de voz sonoro y su autocorrelación, marcando el periodo de pitch detectado.
 
-  ![Gráfica de señal y autocorrelación generada con MATLAB](captura_subplot.png)
+  ![Gráfica de señal y autocorrelación generada con MATLAB](images/captura-subplot.png)
 
    * Determine el mejor candidato para el periodo de pitch localizando el primer máximo secundario de la
      autocorrelación. Inserte a continuación el código correspondiente.
@@ -149,7 +149,7 @@ bool PitchAnalyzer::unvoiced(float pot, float r1norm, float rmaxnorm) const {
 	 	el uso de alternativas de mayor calidad (particularmente Python).
     
 
-    ![alt text](<Captura de pantalla 2025-12-09 a las 13.27.04.png>)
+    ![captura plot_analysis](<images/captura-plot_analysis.png>)
   
   * Optimice los parámetros de su sistema de estimación de pitch e inserte una tabla con las tasas de error
     y el *score* TOTAL proporcionados por `pitch_evaluate` en la evaluación de la base de datos 
@@ -165,7 +165,7 @@ bool PitchAnalyzer::unvoiced(float pot, float r1norm, float rmaxnorm) const {
 >| Gross voiced errors (+20%) | 46 / 3787 | 1.21 % |
 >| MSE of fine errors | - | 2.61 % |
 >| **SCORE TOTAL** | **-** | **90.39 %** |
-  ![Captura de la evaluación final](captura_evaluacion.png)
+  ![Captura de la evaluación final](images/captura-evaluacion.png)
 
 Ejercicios de ampliación
 ------------------------
@@ -179,6 +179,10 @@ Ejercicios de ampliación
 
   * Inserte un *pantallazo* en el que se vea el mensaje de ayuda del programa y un ejemplo de utilización
     con los argumentos añadidos.
+    
+    ![Captura pantallazo help](images/captura-get_pitch.png)
+    ![Captura pantallazo ejecución ejemplo](images/captura-ejecucion.png)
+
 
 - Implemente las técnicas que considere oportunas para optimizar las prestaciones del sistema de estimación
   de pitch.
